@@ -26,7 +26,7 @@ export default function RegistrazionePage({
       }
     >
       <RegistrazioneForm codiceSponsorIniziale={
-          normalizzaCodice(searchParams.ref) ?? normalizzaCodice(cookies().get(REF_COOKIE)?.value) ?? ""
+          searchParams.ref?.trim() || normalizzaCodice(cookies().get(REF_COOKIE)?.value) || ""
         } />
     </AuthShell>
   );
