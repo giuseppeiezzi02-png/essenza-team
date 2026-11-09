@@ -92,7 +92,16 @@ export default async function DashboardPage() {
             {profilo.codice_consulente}
           </p>
           <p className="mt-1 text-sm text-stone-500">Condividilo con le persone che inviti nel team.</p>
-          <CopiaLinkInvito codice={profilo.codice_consulente} />
+          <CopiaLinkInvito
+            percorso={`/c/${profilo.codice_consulente}`}
+            titolo={`${profilo.nome} ${profilo.cognome} · doTERRA`}
+            etichetta="Condividi la tua pagina clienti"
+          />
+          <CopiaLinkInvito
+            percorso={`/registrazione?ref=${profilo.codice_consulente}`}
+            titolo="Unisciti al mio team"
+            etichetta="Condividi link di invito al team"
+          />
         </section>
 
         <section className="space-y-3">

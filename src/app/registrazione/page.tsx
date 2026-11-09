@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
+import { cookies } from "next/headers";
 import Link from "next/link";
 import AuthShell from "@/components/AuthShell";
+import { normalizzaCodice, REF_COOKIE } from "@/lib/referral";
 import RegistrazioneForm from "./RegistrazioneForm";
 
 export const metadata: Metadata = { title: "Registrazione consulente" };
@@ -23,7 +25,9 @@ export default function RegistrazionePage({
         </>
       }
     >
-      <RegistrazioneForm codiceSponsorIniziale={searchParams.ref ?? ""} />
+      <RegistrazioneForm codiceSponsorIniziale={
+          normalizzaCodice(searchParams.ref) ?? normalizzaCodice(cookies().get(REF_COOKIE)?.value) ?? ""
+        } />
     </AuthShell>
   );
 }

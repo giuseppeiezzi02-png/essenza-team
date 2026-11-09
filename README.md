@@ -66,5 +66,6 @@ Poi in `.env.local` (o nelle variabili d'ambiente di Vercel) imposta `NEXT_PUBLI
 ## Schermate
 
 - `/login` – accesso consulente
-- `/registrazione` – registrazione in 2 step (dati personali → sponsor, vetrina doTERRA, Zoom). Supporta link di invito `/registrazione?ref=CODICE`.
+- `/registrazione` – registrazione in 2 step (dati personali → sponsor, vetrina doTERRA, Zoom). Supporta link di invito `/registrazione?ref=CODICE` (o il codice salvato dalla landing).
+- `/c/CODICE` (o `/?ref=CODICE`) – landing pubblica del consulente: salva il codice nel cookie `essenza_ref` (90 giorni) e mostra **Acquista doTERRA** (vetrina del consulente) e **Prenota Colloquio**. Upline Delegation: se il consulente non è *Abilitato Colloqui*, si usa lo Zoom del primo upline abilitato risalendo l'organigramma (`landing_consulente()` nel DB). Chi torna su `/` senza login rivede la landing del consulente salvato.
 - `/dashboard` – profilo, codice consulente, link di invito e stato delle abilitazioni
