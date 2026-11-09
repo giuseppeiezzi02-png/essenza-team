@@ -26,6 +26,12 @@ Sicurezza:
 - Un consulente può modificare solo i propri dati personali/link. Ruolo, flag, upline, codice ed email sono modificabili solo da un admin.
 - Impedita la creazione di cicli nella genealogia (un upline non può stare nella propria downline).
 
+### Primo Admin
+
+La registrazione richiede un codice sponsor, quindi il primo account va creato dalla dashboard:
+Supabase > Authentication > Users > **Add user** (spunta "Auto Confirm User"). Il profilo viene creato
+automaticamente senza upline. Poi promuovilo ad admin e usa il suo `codice_consulente` come primo codice sponsor.
+
 ### Promuovere un Admin
 
 Dal SQL Editor di Supabase:
