@@ -17,14 +17,17 @@ function Stat({ label, value }: { label: string; value: string }) {
   );
 }
 
-export default async function AdsPage() {
+const LEAD_IN_PAGINA = 50;
+
+export default async function AdsPage({ searchParams }: { searchParams: { tutti?: string } }) {
+  const tutti = searchParams.tutti === "1";
   const supabase = createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  const [{ data: campagna }, { data: pagamenti }, { data: leads }] = await Promise.all([
+  const [{ data: campagna }, { data: pagamenti }, { data: leads, count: totaleLead }] = await Promise.all([
     supabase.from("campagne_ads").select("*").eq("consulente_id", user.id).maybeSingle<CampagnaAds>(),
     supabase
       .from("pagamenti_ads")
@@ -33,13 +36,14 @@ export default async function AdsPage() {
       .order("created_at", { ascending: false })
       .limit(5)
       .returns<PagamentoAds[]>(),
-    supabase
-      .from("leads")
-      .select("id, nome, email, telefono, messaggio, created_at")
-      .eq("consulente_id", user.id)
-      .order("created_at", { ascending: false })
-      .limit(50)
-      .returns<Lead[]>(),
+    (() => {
+      const query = supabase
+        .from("leads")
+        .select("id, nome, email, telefono, messaggio, created_at", { count: "exact" })
+        .eq("consulente_id", user.id)
+        .order("created_at", { ascending: false });
+      return (tutti ? query : query.limit(LEAD_IN_PAGINA)).returns<Lead[]>();
+    })(),
   ]);
 
   const attiva = campagna?.stato === "attivo";
@@ -92,6 +96,11 @@ export default async function AdsPage() {
           </ul>
         ) : (
           <p className="text-sm text-stone-500">Ancora nessun lead assegnato.</p>
+        )}
+        {!tutti && (totaleLead ?? 0) > LEAD_IN_PAGINA && (
+          <Link href="/dashboard/ads?tutti=1#lead" className="btn-secondary mt-3">
+            Mostra tutti i {totaleLead} lead
+          </Link>
         )}
       </section>
 
