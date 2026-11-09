@@ -32,18 +32,22 @@ export async function updateSession(request: NextRequest) {
 
   const path = request.nextUrl.pathname;
 
-  if (!user && PROTECTED_PREFIXES.some((p) => path.startsWith(p))) {
+  // Il redirect deve portarsi dietro i cookie di sessione eventualmente rinnovati da getUser()
+  const redirectTo = (pathname: string) => {
     const url = request.nextUrl.clone();
-    url.pathname = "/login";
+    url.pathname = pathname;
     url.search = "";
-    return NextResponse.redirect(url);
+    const redirect = NextResponse.redirect(url);
+    response.cookies.getAll().forEach((cookie) => redirect.cookies.set(cookie));
+    return redirect;
+  };
+
+  if (!user && PROTECTED_PREFIXES.some((p) => path.startsWith(p))) {
+    return redirectTo("/login");
   }
 
   if (user && AUTH_PAGES.includes(path)) {
-    const url = request.nextUrl.clone();
-    url.pathname = "/dashboard";
-    url.search = "";
-    return NextResponse.redirect(url);
+    return redirectTo("/dashboard");
   }
 
   return response;
