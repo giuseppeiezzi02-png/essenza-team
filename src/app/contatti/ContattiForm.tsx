@@ -33,7 +33,13 @@ export default function ContattiForm() {
       p_messaggio: dati.messaggio.trim(),
     });
     setInvio(false);
-    if (error) return setErrore("Invio non riuscito, controlla i dati e riprova.");
+    if (error) {
+      return setErrore(
+        error.message.includes("Troppe richieste")
+          ? "Hai già inviato diverse richieste: riprova tra un'ora."
+          : "Invio non riuscito, controlla i dati e riprova.",
+      );
+    }
     setInviato(true);
   }
 
