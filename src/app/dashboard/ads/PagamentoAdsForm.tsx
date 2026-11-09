@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Alert from "@/components/Alert";
 import Spinner from "@/components/Spinner";
@@ -23,6 +23,8 @@ export default function PagamentoAdsForm() {
   const [errore, setErrore] = useState<string | null>(null);
   const [successo, setSuccesso] = useState<string | null>(null);
   const [invio, setInvio] = useState(false);
+  // Stessa chiave per i retry dello stesso pagamento: il server non lo accredita due volte
+  const chiaveIdempotenza = useRef<string | null>(null);
 
   const importoCents = euroInCents(importo);
 
@@ -33,13 +35,15 @@ export default function PagamentoAdsForm() {
     if (err) return setErrore(err);
     setErrore(null);
     setInvio(true);
+    chiaveIdempotenza.current ??= crypto.randomUUID();
     try {
       const res = await fetch("/api/ads/pagamento", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ importoCents, numero, scadenza, cvc }),
+        body: JSON.stringify({ importoCents, numero, scadenza, cvc, chiaveIdempotenza: chiaveIdempotenza.current }),
       });
       const json = await res.json().catch(() => ({}));
+      if (res.ok || res.status === 400 || res.status === 402) chiaveIdempotenza.current = null;
       if (!res.ok) return setErrore(json.errore ?? "Pagamento non riuscito, riprova.");
       setSuccesso(`Pagamento di ${formatEuro(importoCents!)} riuscito: la tua partecipazione è attiva!`);
       setNumero("");

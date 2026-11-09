@@ -15,6 +15,11 @@ export async function POST(request: Request) {
   const erroreImporto = validaImporto(Number.isFinite(importoCents) ? importoCents : null);
   if (erroreImporto) return NextResponse.json({ errore: erroreImporto }, { status: 400 });
 
+  const chiave = String(body?.chiaveIdempotenza ?? "");
+  if (!/^[0-9a-f-]{36}$/i.test(chiave)) {
+    return NextResponse.json({ errore: "Richiesta non valida, ricarica la pagina." }, { status: 400 });
+  }
+
   const esito = simulaPagamento({
     numero: String(body?.numero ?? ""),
     scadenza: String(body?.scadenza ?? ""),
@@ -27,7 +32,7 @@ export async function POST(request: Request) {
       p_consulente_id: user.id,
       p_importo_cents: importoCents,
       p_provider: "simulato",
-      p_riferimento: `sim_${crypto.randomUUID()}`,
+      p_riferimento: `sim_${user.id}_${chiave}`,
     })
     .single();
   if (error) {
