@@ -1,9 +1,12 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { APP_NAME } from "@/lib/config";
 import { createClient } from "@/lib/supabase/server";
-import type { Profilo } from "@/lib/types";
+import { formatEuro } from "@/lib/ads";
+import type { CampagnaAds, Notifica, Profilo } from "@/lib/types";
 import CopiaLinkInvito from "./CopiaLinkInvito";
+import Notifiche from "./Notifiche";
 
 export const metadata: Metadata = { title: "La mia area" };
 
@@ -60,6 +63,17 @@ export default async function DashboardPage() {
     return <p className="p-6">Profilo non trovato. Contatta un amministratore.</p>;
   }
 
+  const [{ data: campagna }, { data: notifiche }] = await Promise.all([
+    supabase.from("campagne_ads").select("*").eq("consulente_id", user.id).maybeSingle<CampagnaAds>(),
+    supabase
+      .from("notifiche")
+      .select("id, titolo, messaggio, letta, created_at")
+      .eq("consulente_id", user.id)
+      .order("created_at", { ascending: false })
+      .limit(5)
+      .returns<Notifica[]>(),
+  ]);
+
   const { data: upline } = profilo.upline_id
     ? await supabase
         .from("profiles")
@@ -102,6 +116,29 @@ export default async function DashboardPage() {
             titolo="Unisciti al mio team"
             etichetta="Condividi link di invito al team"
           />
+        </section>
+
+        <Notifiche userId={user.id} notifiche={notifiche ?? []} />
+
+        <section className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-stone-200">
+          <div className="flex items-center justify-between">
+            <h2 className="font-semibold text-stone-900">ADS di Gruppo</h2>
+            <span
+              className={`rounded-full px-2.5 py-1 text-xs font-semibold ${
+                campagna?.stato === "attivo" ? "bg-emerald-100 text-emerald-800" : "bg-stone-100 text-stone-500"
+              }`}
+            >
+              {campagna?.stato === "attivo" ? "Attivo" : "Non attivo"}
+            </span>
+          </div>
+          <p className="mt-1 text-sm text-stone-600">
+            {campagna?.stato === "attivo"
+              ? `Budget versato ${formatEuro(campagna.budget_totale_cents)} · ${campagna.lead_ricevuti} lead ricevuti`
+              : "Partecipa al budget comune e ricevi i contatti generati dalle ADS."}
+          </p>
+          <Link href="/dashboard/ads" className="btn-primary mt-4">
+            {campagna?.stato === "attivo" ? "Gestisci ADS e lead" : "Partecipa alle ADS"}
+          </Link>
         </section>
 
         <section className="space-y-3">
